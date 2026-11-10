@@ -1,0 +1,129 @@
+# =============================================================================
+# Enterprise GenAI Data Intelligence Platform — .gitignore
+# =============================================================================
+
+# ---------------------
+# Python
+# ---------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+*.eggs/
+sdist/
+develop-eggs/
+.installed.cfg
+
+# ---------------------
+# Virtual Environments
+# ---------------------
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+# ---------------------
+# Environment & Secrets
+# ---------------------
+.env
+.env.local
+.env.*
+!.env.example
+
+# Key files and local secret stores
+*.pem
+*.key
+secrets/
+
+# ---------------------
+# Testing & QA
+# ---------------------
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# ---------------------
+# Linting & Type Checking
+# ---------------------
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+
+# ---------------------
+# IDE & Editors
+# ---------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ---------------------
+# OS Files
+# ---------------------
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ---------------------
+# Data & Uploads
+# ---------------------
+data/
+uploads/
+*.db
+*.sqlite3
+
+# ---------------------
+# Docker
+# ---------------------
+docker/pgdata/
+docker/ollama_data/
+docker/pgadmin_data/
+
+# ---------------------
+# Logs
+# ---------------------
+logs/
+*.log
+
+# ---------------------
+# Terraform (if used for deployment)
+# ---------------------
+*.tfstate
+*.tfstate.backup
+*.tfstate.*.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.auto.tfvars
+
+# ---------------------
+# Jupyter Notebooks (checkpoints)
+# ---------------------
+.ipynb_checkpoints/
+
+# ---------------------
+# Misc
+# ---------------------
+*.bak
+*.tmp
+*.temp
+.cache/
