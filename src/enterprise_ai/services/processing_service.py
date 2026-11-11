@@ -2,18 +2,16 @@
 
 import io
 import uuid
-from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from enterprise_ai.core.exceptions import DocumentNotFoundError
 from enterprise_ai.core.logging import get_logger
-from enterprise_ai.database.base import DocumentPage, DocumentStatus
+from enterprise_ai.database.base import DocumentPage
 from enterprise_ai.database.repositories.document_repository import DocumentRepository
 from enterprise_ai.extraction.router import ExtractionRouter, get_extraction_router
 from enterprise_ai.extraction.schemas import ExtractedDocument
 from enterprise_ai.ingestion.local_storage import LocalStorage
-from enterprise_ai.ingestion.s3_storage import S3Storage
 from enterprise_ai.ingestion.status_manager import StatusManager
 from enterprise_ai.ingestion.storage_interface import StorageInterface
 

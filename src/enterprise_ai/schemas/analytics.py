@@ -1,6 +1,7 @@
 """Pydantic schemas for analytics and metrics reporting."""
 
 from typing import Any
+
 from pydantic import BaseModel, Field
 
 

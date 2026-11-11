@@ -13,19 +13,20 @@ Tables
 import enum
 import uuid
 from datetime import datetime
+from typing import Any
 
 try:
     from pgvector.sqlalchemy import Vector
 except ImportError:
     from sqlalchemy.types import UserDefinedType
 
-    class Vector(UserDefinedType):  # type: ignore[no-redef]
+    class Vector(UserDefinedType[Any]):  # type: ignore[no-redef]
         """Fallback Vector type for environments without pgvector installed."""
 
         def __init__(self, dim: int):
             self.dim = dim
 
-        def get_col_spec(self, **kw):
+        def get_col_spec(self, **kw: Any) -> str:
             return f"vector({self.dim})"
 from sqlalchemy import (
     Boolean,
@@ -39,14 +40,14 @@ from sqlalchemy import (
     Text,
     func,
 )
-from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-
 
 # ── Enums ────────────────────────────────────────────────────────────────────
 
 
-class UserRole(str, enum.Enum):
+class UserRole(enum.StrEnum):
     """Allowed user roles."""
 
     ADMIN = "admin"
@@ -54,7 +55,7 @@ class UserRole(str, enum.Enum):
     VIEWER = "viewer"
 
 
-class DocumentStatus(str, enum.Enum):
+class DocumentStatus(enum.StrEnum):
     """Document processing lifecycle states."""
 
     PENDING = "pending"
@@ -63,7 +64,7 @@ class DocumentStatus(str, enum.Enum):
     FAILED = "failed"
 
 
-class AccessPermission(str, enum.Enum):
+class AccessPermission(enum.StrEnum):
     """Document-level permission types."""
 
     READ = "read"
@@ -166,7 +167,7 @@ class Document(Base):
         default=DocumentStatus.PENDING,
         index=True,
     )
-    extraction_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    extraction_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -224,7 +225,7 @@ class DocumentPage(Base):
     raw_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     cleaned_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     extraction_method: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    tables_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    tables_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -284,7 +285,7 @@ class Chunk(Base):
     content_clean: Mapped[str | None] = mapped_column(Text, nullable=True)
     embedding = mapped_column(Vector(768), nullable=True)
     search_vector = mapped_column(TSVECTOR, nullable=True)
-    metadata_: Mapped[dict | None] = mapped_column(
+    metadata_: Mapped[dict[str, Any] | None] = mapped_column(
         "metadata_",
         JSONB,
         nullable=True,
@@ -324,8 +325,8 @@ class Query(Base):
     )
     question: Mapped[str] = mapped_column(Text, nullable=False)
     answer: Mapped[str | None] = mapped_column(Text, nullable=True)
-    citations: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    retrieval_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    citations: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    retrieval_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     llm_provider: Mapped[str | None] = mapped_column(String(64), nullable=True)
     llm_model: Mapped[str | None] = mapped_column(String(128), nullable=True)
     tokens_used: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -386,3 +387,204 @@ class DocumentAccess(Base):
             f"<DocumentAccess id={self.id} doc={self.document_id} "
             f"user={self.user_id} perm={self.permission}>"
         )
+
+
+class MessageRole(enum.StrEnum):
+    """Message roles used in user conversations."""
+
+    USER = "user"
+    ASSISTANT = "assistant"
+    SYSTEM = "system"
+
+
+class Conversation(Base):
+    """A user session or chat thread."""
+
+    __tablename__ = "conversations"
+    __table_args__ = (
+        Index("ix_conversations_user_id", "user_id"),
+        Index("ix_conversations_tenant_id", "tenant_id"),
+        Index("ix_conversations_created_at", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        nullable=False,
+        index=True,
+    )
+    title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    user: Mapped["User"] = relationship("User")
+    messages: Mapped[list["Message"]] = relationship(
+        "Message",
+        back_populates="conversation",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+
+class Message(Base):
+    """A single chat message within a conversation."""
+
+    __tablename__ = "messages"
+    __table_args__ = (
+        Index("ix_messages_conversation_id", "conversation_id"),
+        Index("ix_messages_role", "role"),
+        Index("ix_messages_created_at", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    conversation_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("conversations.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    role: Mapped[MessageRole] = mapped_column(
+        Enum(MessageRole, name="message_role", native_enum=False),
+        nullable=False,
+    )
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    citations: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    token_usage: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    conversation: Mapped["Conversation"] = relationship("Conversation", back_populates="messages")
+
+
+class ProcessingJob(Base):
+    """Document processing job lifecycle records."""
+
+    __tablename__ = "processing_jobs"
+    __table_args__ = (
+        Index("ix_processing_jobs_document_id", "document_id"),
+        Index("ix_processing_jobs_status", "status"),
+        Index("ix_processing_jobs_created_at", "created_at"),
+        Index("ix_processing_jobs_worker_id", "worker_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    job_type: Mapped[str] = mapped_column(String(128), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    max_attempts: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
+    worker_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    claimed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    document: Mapped["Document"] = relationship("Document")
+
+
+class LLMUsage(Base):
+    """Usage metadata for all model invocations."""
+
+    __tablename__ = "llm_usage"
+    __table_args__ = (
+        Index("ix_llm_usage_user_id", "user_id"),
+        Index("ix_llm_usage_tenant_id", "tenant_id"),
+        Index("ix_llm_usage_created_at", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    tenant_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False, index=True)
+    provider: Mapped[str] = mapped_column(String(64), nullable=False)
+    model_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    prompt_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    completion_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    estimated_cost: Mapped[float | None] = mapped_column(Float, nullable=True)
+    request_duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    user: Mapped["User | None"] = relationship("User")
+
+
+class EvaluationResult(Base):
+    """Evaluation dataset records for retrieval and answer quality."""
+
+    __tablename__ = "evaluation_results"
+    __table_args__ = (Index("ix_evaluation_results_created_at", "created_at"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    evaluation_dataset: Mapped[str] = mapped_column(String(255), nullable=False)
+    query: Mapped[str] = mapped_column(Text, nullable=False)
+    expected_answer: Mapped[str | None] = mapped_column(Text, nullable=True)
+    generated_answer: Mapped[str | None] = mapped_column(Text, nullable=True)
+    retrieval_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    answer_relevance: Mapped[float | None] = mapped_column(Float, nullable=True)
+    faithfulness_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    citation_correctness: Mapped[float | None] = mapped_column(Float, nullable=True)
+    evaluation_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )

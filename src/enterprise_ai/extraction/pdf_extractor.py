@@ -1,13 +1,10 @@
 """High-performance PDF extractor utilizing PyMuPDF with OCR fallback for scanned pages."""
 
-import io
-from pathlib import Path
 from typing import BinaryIO
 
 from enterprise_ai.core.exceptions import ExtractionError
 from enterprise_ai.core.logging import get_logger
 from enterprise_ai.extraction.base_extractor import BaseExtractor
-from enterprise_ai.extraction.layout_analyzer import LayoutAnalyzer
 from enterprise_ai.extraction.ocr_engine import OCREngine
 from enterprise_ai.extraction.schemas import ExtractedDocument, ExtractedPage, ExtractedTable
 from enterprise_ai.extraction.table_extractor import TableExtractor

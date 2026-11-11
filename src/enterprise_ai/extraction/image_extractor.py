@@ -2,6 +2,7 @@
 
 import io
 from typing import BinaryIO
+
 from PIL import Image
 
 from enterprise_ai.core.exceptions import ExtractionError

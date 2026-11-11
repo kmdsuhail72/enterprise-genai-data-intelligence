@@ -1,8 +1,8 @@
 """Document management and upload endpoints."""
 
 import uuid
+
 from fastapi import APIRouter, Depends, File, UploadFile
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from enterprise_ai.api.dependencies import get_document_service
 from enterprise_ai.schemas.common import APIResponse

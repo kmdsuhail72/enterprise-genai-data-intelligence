@@ -8,9 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from enterprise_ai.core.logging import get_logger
 from enterprise_ai.database.base import Document, DocumentStatus
 from enterprise_ai.database.repositories.document_repository import DocumentRepository
-from enterprise_ai.ingestion.local_storage import LocalStorage
-from enterprise_ai.ingestion.s3_storage import S3Storage
-from enterprise_ai.ingestion.storage_interface import StorageInterface
 from enterprise_ai.ingestion.upload_service import UploadService
 
 logger = get_logger(__name__)

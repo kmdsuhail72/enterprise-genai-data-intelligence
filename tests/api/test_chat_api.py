@@ -2,7 +2,9 @@
 
 import uuid
 from unittest.mock import AsyncMock, patch
+
 from fastapi.testclient import TestClient
+
 from enterprise_ai.main import app
 
 client = TestClient(app)

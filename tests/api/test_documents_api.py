@@ -1,7 +1,7 @@
 """Tests for documents API endpoints."""
 
-import io
 from fastapi.testclient import TestClient
+
 from enterprise_ai.main import app
 
 client = TestClient(app)

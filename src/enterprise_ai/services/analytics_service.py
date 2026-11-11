@@ -1,6 +1,5 @@
 """Analytics service coordinating deterministic numerical computations and summaries."""
 
-import uuid
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession

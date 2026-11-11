@@ -4,6 +4,11 @@ Uses a lazy-singleton pattern so that the engine is not created at import
 time — this makes testing and configuration overrides straightforward.
 """
 
+from __future__ import annotations
+
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -49,6 +54,20 @@ async def async_session_factory() -> AsyncSession:
     """Create and return a new :class:`AsyncSession`."""
     factory = get_session_factory()
     return factory()
+
+
+@asynccontextmanager
+async def session_scope() -> AsyncGenerator[AsyncSession, None]:
+    """Provide a transactional session scope with rollback and cleanup."""
+    session = await async_session_factory()
+    try:
+        yield session
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
+    finally:
+        await session.close()
 
 
 async def dispose_engine() -> None:

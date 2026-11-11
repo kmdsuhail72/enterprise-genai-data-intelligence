@@ -17,13 +17,23 @@ class APIResponse(BaseModel, Generic[T]):
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
+class PageParams(BaseModel):
+    """Reusable request parameters for paginated reads."""
+
+    page: int = Field(default=1, ge=1)
+    page_size: int = Field(default=25, ge=1, le=100)
+
+
 class PaginatedResponse(BaseModel, Generic[T]):
     """Standardized pagination response."""
 
     items: list[T]
     total: int
-    skip: int
-    limit: int
+    page: int = 1
+    page_size: int = 25
+    total_pages: int = 1
+    has_next: bool = False
+    has_previous: bool = False
 
 
 class ErrorDetail(BaseModel):

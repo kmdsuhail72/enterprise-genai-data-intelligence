@@ -1,14 +1,13 @@
 """Storage abstraction layer for documents (local filesystem and AWS S3)."""
 
 import abc
-import os
 import shutil
 import uuid
 from pathlib import Path
 from typing import BinaryIO
 
 from app.core.config import get_settings
-from app.core.exceptions import StorageError, FileNotFoundError_
+from app.core.exceptions import FileNotFoundError_, StorageError
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)

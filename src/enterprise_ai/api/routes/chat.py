@@ -1,6 +1,7 @@
 """Natural language RAG chat endpoints."""
 
 import uuid
+
 from fastapi import APIRouter, Depends
 
 from enterprise_ai.api.dependencies import get_chat_service

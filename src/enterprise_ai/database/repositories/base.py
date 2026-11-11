@@ -1,7 +1,7 @@
 """Generic async CRUD repository for SQLAlchemy models."""
 
 import uuid
-from typing import Any, Generic, Type, TypeVar
+from typing import Any, Generic, TypeVar
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +14,7 @@ ModelType = TypeVar("ModelType", bound=Base)
 class BaseRepository(Generic[ModelType]):
     """Generic repository with async CRUD operations."""
 
-    def __init__(self, model: Type[ModelType], session: AsyncSession) -> None:
+    def __init__(self, model: type[ModelType], session: AsyncSession) -> None:
         self.model = model
         self.session = session
 
@@ -56,7 +56,8 @@ class BaseRepository(Generic[ModelType]):
         result = await self.session.execute(
             delete(self.model).where(self.model.id == id)  # type: ignore[attr-defined]
         )
-        return result.rowcount > 0
+        rowcount = getattr(result, "rowcount", 0) or 0
+        return int(rowcount) > 0
 
     async def count(self) -> int:
         """Return total record count."""

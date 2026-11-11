@@ -155,4 +155,5 @@ class ChunkRepository(BaseRepository[Chunk]):
         result = await self.session.execute(
             sa_delete(Chunk).where(Chunk.document_id == document_id)
         )
-        return result.rowcount
+        rowcount = getattr(result, "rowcount", 0) or 0
+        return int(rowcount)

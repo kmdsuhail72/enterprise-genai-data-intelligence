@@ -1,23 +1,9 @@
 """Shared test fixtures."""
 
-import os
-import sys
-import uuid
-from pathlib import Path
-from collections.abc import AsyncGenerator
+from collections.abc import Generator
 from unittest.mock import patch
 
-# Ensure src/ is on sys.path for test discovery
-src_dir = str(Path(__file__).resolve().parents[1] / "src")
-if src_dir not in sys.path:
-    sys.path.insert(0, src_dir)
-
 import pytest
-
-try:
-    import pytest_asyncio
-except ImportError:
-    pytest_asyncio = None
 
 from enterprise_ai.core.config import Settings
 
@@ -41,7 +27,7 @@ def test_settings() -> Settings:
 
 
 @pytest.fixture
-def mock_settings(test_settings: Settings):
+def mock_settings(test_settings: Settings) -> Generator[Settings, None, None]:
     """Patch get_settings to return test settings."""
     with patch("enterprise_ai.core.config.get_settings", return_value=test_settings):
         yield test_settings

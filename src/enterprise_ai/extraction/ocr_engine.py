@@ -2,6 +2,7 @@
 
 import io
 from typing import Any
+
 from PIL import Image
 
 from enterprise_ai.core.exceptions import OCRError
@@ -63,8 +64,6 @@ class OCREngine:
             image = Image.open(io.BytesIO(image_bytes))
             # 1. Try PaddleOCR
             try:
-                from paddleocr import PaddleOCR
-
                 engine = self._get_paddle_instance()
                 result = engine.ocr(image_bytes, cls=self.use_angle_cls)
                 lines = []

@@ -1,6 +1,7 @@
 """Database verification and initialization script."""
 
 import asyncio
+
 import asyncpg
 
 from enterprise_ai.core.config import get_settings

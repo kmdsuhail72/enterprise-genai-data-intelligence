@@ -2,6 +2,7 @@
 
 import uuid
 from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -27,7 +28,7 @@ class ExtractedTable(BaseModel):
         if not self.headers and not self.rows:
             return ""
 
-        headers = self.headers if self.headers else [f"Col {i+1}" for i in range(self.column_count)]
+        headers = self.headers if self.headers else [f"Col {i + 1}" for i in range(self.column_count)]
         header_line = "| " + " | ".join(str(h).strip() for h in headers) + " |"
         separator_line = "| " + " | ".join("---" for _ in headers) + " |"
 
@@ -35,7 +36,9 @@ class ExtractedTable(BaseModel):
         for row in self.rows:
             # Pad row if shorter than headers
             padded_row = list(row) + [""] * (len(headers) - len(row))
-            data_lines.append("| " + " | ".join(str(cell).strip().replace("\n", " ") for cell in padded_row[:len(headers)]) + " |")
+            data_lines.append(
+                "| " + " | ".join(str(cell).strip().replace("\n", " ") for cell in padded_row[: len(headers)]) + " |"
+            )
 
         return "\n".join([header_line, separator_line] + data_lines)
 
@@ -48,7 +51,9 @@ class ExtractedPage(BaseModel):
     cleaned_text: str | None = Field(default=None, description="Cleaned, normalized text")
     extraction_method: str = Field(..., description="Method used: fitz, openpyxl, pandas, python-docx, ocr")
     tables: list[ExtractedTable] = Field(default_factory=list, description="Tables identified on this page")
-    metadata: dict[str, Any] = Field(default_factory=dict, description="Page-level metadata (dimensions, orientation, etc.)")
+    metadata: dict[str, Any] = Field(
+        default_factory=dict, description="Page-level metadata (dimensions, orientation, etc.)"
+    )
 
 
 class ExtractedDocument(BaseModel):
@@ -59,18 +64,17 @@ class ExtractedDocument(BaseModel):
     content_type: str = Field(..., description="MIME type or file extension identifier")
     total_pages: int = Field(..., description="Total pages or sheets extracted")
     pages: list[ExtractedPage] = Field(default_factory=list, description="List of per-page extracted contents")
-    metadata: dict[str, Any] = Field(default_factory=dict, description="Document-level metadata (author, created date, etc.)")
+    metadata: dict[str, Any] = Field(
+        default_factory=dict, description="Document-level metadata (author, created date, etc.)"
+    )
 
     @property
     def full_text(self) -> str:
         """Concatenate text across all pages with page markers."""
         return "\n\n".join(
-            f"--- [Page {page.page_number}] ---\n{page.raw_text}"
-            for page in self.pages
-            if page.raw_text.strip()
+            f"--- [Page {page.page_number}] ---\n{page.raw_text}" for page in self.pages if page.raw_text.strip()
         )
 
     @property
     def total_tables(self) -> int:
         return sum(len(page.tables) for page in self.pages)
-

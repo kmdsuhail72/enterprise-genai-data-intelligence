@@ -3,14 +3,12 @@
 import uuid
 from typing import BinaryIO
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.core.exceptions import DocumentValidationError
 from app.core.logging import get_logger
 from app.db.models import Document, DocumentStatus
 from app.db.repositories.documents import DocumentRepository
-from app.ingestion.file_validator import FileValidator, FileValidationResult
+from app.ingestion.file_validator import FileValidationResult, FileValidator
 from app.ingestion.storage import StorageBackend, get_storage_backend
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = get_logger(__name__)
 

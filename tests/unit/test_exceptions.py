@@ -3,26 +3,26 @@
 import pytest
 
 from enterprise_ai.core.exceptions import (
-    PlatformError,
+    AuthError,
     DocumentError,
     DocumentNotFoundError,
     DocumentValidationError,
-    UnsupportedFileTypeError,
-    FileSizeLimitError,
+    EmbeddingError,
     ExtractionError,
-    OCRError,
-    AuthError,
-    InvalidCredentialsError,
+    FileSizeLimitError,
     InsufficientPermissionsError,
+    InvalidCredentialsError,
     LLMError,
     LLMProviderError,
-    LLMTimeoutError,
     LLMRateLimitError,
+    LLMTimeoutError,
+    OCRError,
+    PIIError,
+    PlatformError,
     RAGError,
     RetrievalError,
-    EmbeddingError,
     StorageError,
-    PIIError,
+    UnsupportedFileTypeError,
 )
 
 

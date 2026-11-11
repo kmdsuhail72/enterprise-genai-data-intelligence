@@ -1,9 +1,10 @@
 """Comprehensive unit tests for the document extraction engine."""
 
 import io
+
 import docx
-import pymupdf as fitz
 import pandas as pd
+import pymupdf as fitz
 import pytest
 from PIL import Image
 
@@ -14,7 +15,7 @@ from enterprise_ai.extraction.excel_extractor import ExcelExtractor
 from enterprise_ai.extraction.image_extractor import ImageExtractor
 from enterprise_ai.extraction.pdf_extractor import PDFExtractor
 from enterprise_ai.extraction.router import ExtractionRouter
-from enterprise_ai.extraction.schemas import ExtractedDocument, ExtractedPage, ExtractedTable
+from enterprise_ai.extraction.schemas import ExtractedDocument
 from enterprise_ai.extraction.table_extractor import TableExtractor
 
 
@@ -75,7 +76,7 @@ class TestCSVExtractor:
 
     @pytest.mark.asyncio
     async def test_extract_semicolon_csv(self):
-        csv_data = "Item;Unit Price;Quantity\nWidget A;10.50;100\nWidget B;25.00;40\n".encode("utf-8")
+        csv_data = b"Item;Unit Price;Quantity\nWidget A;10.50;100\nWidget B;25.00;40\n"
         extractor = CSVExtractor()
         doc = await extractor.extract(io.BytesIO(csv_data), "inventory.csv")
         assert doc.total_pages == 1

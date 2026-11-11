@@ -1,6 +1,5 @@
 """User service coordinating authentication, registration, and role assignment."""
 
-import uuid
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession

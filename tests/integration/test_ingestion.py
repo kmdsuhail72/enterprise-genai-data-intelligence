@@ -2,6 +2,7 @@
 
 import io
 import uuid
+
 import pytest
 from sqlalchemy import select
 
@@ -31,11 +32,11 @@ async def test_full_ingestion_and_processing_pipeline():
 
         # 2. Ingest CSV document
         csv_content = (
-            "Metric,FY2022,FY2023,YoY_Growth\n"
-            "Cloud Revenue,120.5,185.2,+53.7%\n"
-            "Operating Margin,22.4%,28.1%,+5.7pts\n"
-            "Headcount,1420,1850,+30.3%\n"
-        ).encode("utf-8")
+            b"Metric,FY2022,FY2023,YoY_Growth\n"
+            b"Cloud Revenue,120.5,185.2,+53.7%\n"
+            b"Operating Margin,22.4%,28.1%,+5.7pts\n"
+            b"Headcount,1420,1850,+30.3%\n"
+        )
 
         ingestion_service = IngestionService()
         doc = await ingestion_service.ingest_document(

@@ -2,12 +2,13 @@
 
 import io
 from typing import BinaryIO
+
 import pandas as pd
 
 from enterprise_ai.core.exceptions import ExtractionError
 from enterprise_ai.core.logging import get_logger
 from enterprise_ai.extraction.base_extractor import BaseExtractor
-from enterprise_ai.extraction.schemas import ExtractedDocument, ExtractedPage, ExtractedTable
+from enterprise_ai.extraction.schemas import ExtractedDocument, ExtractedPage
 from enterprise_ai.extraction.table_extractor import TableExtractor
 
 logger = get_logger(__name__)
